@@ -9,6 +9,9 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TechSelection from "./pages/TechSelection";
 import LearningPath from "./pages/LearningPath";
+import HtmlBlueprint from "./pages/games/HtmlBlueprint";
+import CssStyler from "./pages/games/CssStyler";
+import JsCommander from "./pages/games/JsCommander";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +28,9 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tech-selection" element={<TechSelection />} />
           <Route path="/learning-path" element={<LearningPath />} />
+          <Route path="/games/html-blueprint" element={<HtmlBlueprint />} />
+          <Route path="/games/css-styler" element={<CssStyler />} />
+          <Route path="/games/js-commander" element={<JsCommander />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

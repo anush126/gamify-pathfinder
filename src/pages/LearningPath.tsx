@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, CheckCircle, Lock, Star, Award, Zap, Lightbulb, HelpCircle } from 'lucide-react';
+import { ChevronLeft, CheckCircle, Lock, Star, Award, Zap, Lightbulb, HelpCircle, Puzzle, Brush, Terminal } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Navbar from '@/components/Navbar';
 import LevelCard from '@/components/LevelCard';
@@ -25,6 +24,9 @@ const LearningPath = () => {
       progress: 100,
       isLocked: false,
       isCompleted: true,
+      gameType: 'html',
+      icon: <Puzzle className="w-5 h-5 text-orange-500" />,
+      gameName: 'Build the Blueprint',
     },
     {
       level: 2,
@@ -33,6 +35,9 @@ const LearningPath = () => {
       progress: 70,
       isLocked: false,
       isCompleted: false,
+      gameType: 'css',
+      icon: <Brush className="w-5 h-5 text-blue-500" />,
+      gameName: 'Style the Scene',
     },
     {
       level: 3,
@@ -41,6 +46,9 @@ const LearningPath = () => {
       progress: 0,
       isLocked: false,
       isCompleted: false,
+      gameType: 'javascript',
+      icon: <Terminal className="w-5 h-5 text-yellow-500" />,
+      gameName: 'Code Commanders',
     },
     {
       level: 4,
@@ -101,15 +109,37 @@ const LearningPath = () => {
   ];
 
   const handleLevelClick = (level: number) => {
+    const selectedLevel = levels[level - 1];
+    
+    if (level <= 3 && !selectedLevel.isLocked) {
+      navigateToGame(selectedLevel.gameType);
+      return;
+    }
+    
     setActiveLevel(level);
     setDialogOpen(true);
+  };
+  
+  const navigateToGame = (gameType: string) => {
+    switch (gameType) {
+      case 'html':
+        navigate('/games/html-blueprint');
+        break;
+      case 'css':
+        navigate('/games/css-styler');
+        break;
+      case 'javascript':
+        navigate('/games/js-commander');
+        break;
+      default:
+        setDialogOpen(true);
+    }
   };
   
   const handleCompleteChallenge = () => {
     if (activeLevel !== null) {
       completeChallenge(`level-${activeLevel}`);
       
-      // Update level progress (this would be handled by your backend in a real app)
       toast({
         title: "Challenge completed!",
         description: "You've earned 50 XP and made progress on this level.",

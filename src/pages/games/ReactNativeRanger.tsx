@@ -2,276 +2,105 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Play, Code, Award, Clock, Lightbulb, Check, X, Terminal, Save } from 'lucide-react';
+import { ChevronLeft, Terminal, Play, RefreshCw, Info, HelpCircle, Code, CheckCircle, Smartphone } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Navbar from '@/components/Navbar';
 import { useProgress } from '@/hooks/useProgress';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-interface Level {
+interface GameLevel {
   id: number;
   title: string;
   description: string;
+  instructions: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  initialCode: string;
+  solutionCode: string;
+  solutionCriteria: string[];
+  hints: string[];
   xpReward: number;
-  timeLimit: number; // in minutes
-  isLocked: boolean;
-  isCompleted: boolean;
-  challenge: {
-    description: string;
-    initialCode: string;
-    expectedOutput: string;
-    hints: string[];
-    solution?: string;
-  };
 }
 
 const ReactNativeRanger = () => {
-  const { stats, levelProgress, completeChallenge, addXP } = useProgress();
-  const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
-  const [isLevelDialogOpen, setIsLevelDialogOpen] = useState(false);
-  const [showHint, setShowHint] = useState(false);
-  const [activeTab, setActiveTab] = useState('challenge');
-  const [userCode, setUserCode] = useState<string>('');
-  const [runResult, setRunResult] = useState<string | null>(null);
-  const [codeVerified, setCodeVerified] = useState<boolean>(false);
   const navigate = useNavigate();
+  const { stats, levelProgress, addXP } = useProgress();
+  const [currentLevel, setCurrentLevel] = useState<number>(0);
+  const [userCode, setUserCode] = useState<string>('');
+  const [showHint, setShowHint] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [output, setOutput] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('challenge');
+  const [showSolution, setShowSolution] = useState(false);
   
-  const levels: Level[] = [
+  const gameLevels: GameLevel[] = [
     {
       id: 1,
-      title: "Fix The Shopping Cart",
-      description: "Debug a shopping app where items don't add to the cart correctly.",
+      title: 'Simple Product List',
+      description: 'Create a scrollable list of products using FlatList',
+      instructions: 'Create a FlatList component that displays a list of products with their names and prices.',
       difficulty: 'beginner',
-      xpReward: 50,
-      timeLimit: 10,
-      isLocked: false,
-      isCompleted: false,
-      challenge: {
-        description: "The ShoppingCart component doesn't update when new items are added. Find and fix the bug in the state management.",
-        initialCode: `import React, { useState } from 'react';
-import { View, Text, Button, FlatList } from 'react-native';
-
-const ShoppingCart = () => {
-  const [items, setItems] = useState([]);
-  
-  const products = [
-    { id: 1, name: 'Headphones', price: 99.99 },
-    { id: 2, name: 'Smart Watch', price: 199.99 },
-    { id: 3, name: 'Bluetooth Speaker', price: 49.99 },
-  ];
-  
-  const addToCart = (product) => {
-    // BUG: This doesn't update the state correctly
-    items.push(product);
-  };
-  
-  return (
-    <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
-      
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={{ marginBottom: 10 }}>
-            <Text>{item.name} - $\\{item.price}</Text>
-            <Button title="Add to Cart" onPress={() => addToCart(item)} />
-          </View>
-        )}
-      />
-      
-      <Text style={{ fontSize: 20, marginTop: 20 }}>Cart Items: {items.length}</Text>
-      
-      <FlatList
-        data={items}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Text>{item.name} - $\\{item.price}</Text>
-        )}
-      />
-    </View>
-  );
-};
-
-export default ShoppingCart;`,
-        expectedOutput: "The shopping cart should update when items are added, displaying the correct count and list of items.",
-        hints: [
-          "Think about how React state should be updated. Direct mutations won't trigger re-renders.",
-          "The setItems function should be used to update the state.",
-          "Try using the spread operator or Array.concat() to create a new array."
-        ],
-        solution: `import React, { useState } from 'react';
-import { View, Text, Button, FlatList } from 'react-native';
-
-const ShoppingCart = () => {
-  const [items, setItems] = useState([]);
-  
-  const products = [
-    { id: 1, name: 'Headphones', price: 99.99 },
-    { id: 2, name: 'Smart Watch', price: 199.99 },
-    { id: 3, name: 'Bluetooth Speaker', price: 49.99 },
-  ];
-  
-  const addToCart = (product) => {
-    // Fixed: Create a new array and update state with setItems
-    setItems([...items, product]);
-  };
-  
-  return (
-    <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
-      
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={{ marginBottom: 10 }}>
-            <Text>{item.name} - $\\{item.price}</Text>
-            <Button title="Add to Cart" onPress={() => addToCart(item)} />
-          </View>
-        )}
-      />
-      
-      <Text style={{ fontSize: 20, marginTop: 20 }}>Cart Items: {items.length}</Text>
-      
-      <FlatList
-        data={items}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Text>{item.name} - $\\{item.price}</Text>
-        )}
-      />
-    </View>
-  );
-};
-
-export default ShoppingCart;`
-      }
-    },
-    {
-      id: 2,
-      title: "Navigation Nightmare",
-      description: "Fix a broken navigation system in a social media app.",
-      difficulty: 'intermediate',
-      xpReward: 75,
-      timeLimit: 15,
-      isLocked: true,
-      isCompleted: false,
-      challenge: {
-        description: "The app's navigation system is broken. Users can't move between screens properly. Fix the React Navigation setup.",
-        initialCode: `import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './HomeScreen';
-import ProfileScreen from './ProfileScreen';
-import SettingsScreen from './SettingsScreen';
-
-const Stack = createStackNavigator();
-
-const AppNavigator = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        {/* BUG: Navigation setup is incorrect */}
-        <Stack.Screen component={HomeScreen} />
-        <Stack.Screen name="Settings" component={ProfileScreen} />
-        <Stack.Screen name="Profile" component={SettingsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
-
-export default AppNavigator;`,
-        expectedOutput: "Navigation should work correctly with proper screen names and components.",
-        hints: [
-          "Each Stack.Screen needs a unique 'name' prop.",
-          "The HomeScreen is missing its name prop.",
-          "The ProfileScreen and SettingsScreen components are switched."
-        ],
-        solution: `import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from './HomeScreen';
-import ProfileScreen from './ProfileScreen';
-import SettingsScreen from './SettingsScreen';
-
-const Stack = createStackNavigator();
-
-const AppNavigator = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        {/* Fixed: Added missing name prop and corrected component order */}
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
-
-export default AppNavigator;`
-      }
-    },
-    {
-      id: 3,
-      title: "API Integration",
-      description: "Implement a product listing that fetches data from an API.",
-      difficulty: 'advanced',
-      xpReward: 100,
-      timeLimit: 20,
-      isLocked: true,
-      isCompleted: false,
-      challenge: {
-        description: "Create a ProductList component that fetches products from an API and displays them with proper loading and error states.",
-        initialCode: `import React, { useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+      initialCode: `import React from 'react';
+import { View, Text, FlatList, Button } from 'react-native';
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  
-  // TODO: Implement the fetchProducts function
-  const fetchProducts = () => {
-    // Fetch data from https://fakestoreapi.com/products
+  const products = [
+    { id: 1, name: 'Phone', price: 699 },
+    { id: 2, name: 'Laptop', price: 999 },
+    { id: 3, name: 'Headphones', price: 149 },
+    { id: 4, name: 'Tablet', price: 499 },
+    { id: 5, name: 'Smartwatch', price: 299 },
+  ];
+
+  const addToCart = (product) => {
+    console.log(\`Added \${product.name} to cart\`);
   };
-  
-  // TODO: Call fetchProducts when component mounts
-  
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-  
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Error loading products</Text>
-      </View>
-    );
-  }
-  
+
+  // TODO: Implement a FlatList to display products
   return (
     <View style={{ padding: 20 }}>
       <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
-      
+      {/* Your FlatList implementation goes here */}
+    </View>
+  );
+};
+
+export default ProductList;`,
+      solutionCode: `import React from 'react';
+import { View, Text, FlatList, Button } from 'react-native';
+
+const ProductList = () => {
+  const products = [
+    { id: 1, name: 'Phone', price: 699 },
+    { id: 2, name: 'Laptop', price: 999 },
+    { id: 3, name: 'Headphones', price: 149 },
+    { id: 4, name: 'Tablet', price: 499 },
+    { id: 5, name: 'Smartwatch', price: 299 },
+  ];
+
+  const addToCart = (product) => {
+    console.log(\`Added \${product.name} to cart\`);
+  };
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
       <FlatList
         data={products}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={{ marginBottom: 15, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5 }}>
-            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.title}</Text>
-            <Text>$\\{item.price}</Text>
+          <View style={{ marginBottom: 10 }}>
+            <Text>{item.name} - ${item.price}</Text>
+            <Button title="Add to Cart" onPress={() => addToCart(item)} />
           </View>
         )}
       />
@@ -280,184 +109,404 @@ const ProductList = () => {
 };
 
 export default ProductList;`,
-        expectedOutput: "The app should fetch products from the API, display a loading indicator while fetching, handle errors, and display the products in a list.",
-        hints: [
-          "Use the useEffect hook to fetch data when the component mounts.",
-          "Implement proper try/catch handling for the fetch operation.",
-          "Update loading, error, and products states at appropriate times during the fetch operation."
-        ],
-        solution: `import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+      solutionCriteria: [
+        'Must use FlatList component',
+        'Must display product name and price',
+        'Must include Add to Cart button for each item',
+        'Must use keyExtractor for unique keys'
+      ],
+      hints: [
+        'FlatList takes data, keyExtractor, and renderItem props',
+        'renderItem is a function that returns JSX for each item',
+        'Use the item parameter in renderItem to access each product',
+        'Don\'t forget to add styles for better UI appearance'
+      ],
+      xpReward: 50,
+    },
+    {
+      id: 2,
+      title: 'Shopping Cart',
+      description: 'Create a simple shopping cart with state management',
+      instructions: 'Implement a shopping cart that allows adding products and displays the cart items.',
+      difficulty: 'intermediate',
+      initialCode: `import React from 'react';
+import { View, Text, FlatList, Button } from 'react-native';
 
-const ProductList = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const ShoppingCart = () => {
+  // TODO: Create state for cart items
   
-  // Implemented the fetchProducts function
-  const fetchProducts = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('https://fakestoreapi.com/products');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      
-      const data = await response.json();
-      setProducts(data);
-    } catch (err) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const products = [
+    { id: 1, name: 'Phone', price: 699 },
+    { id: 2, name: 'Laptop', price: 999 },
+    { id: 3, name: 'Headphones', price: 149 },
+  ];
+
+  // TODO: Implement addToCart function
   
-  // Call fetchProducts when component mounts
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-  
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-  
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Error loading products</Text>
-      </View>
-    );
-  }
-  
+  // TODO: Calculate cart total
+
   return (
     <View style={{ padding: 20 }}>
       <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
+      {/* TODO: Add FlatList for products */}
       
+      <Text style={{ fontSize: 20, marginTop: 30, marginBottom: 10 }}>Cart</Text>
+      {/* TODO: Add FlatList for cart items */}
+      
+      {/* TODO: Display cart total */}
+    </View>
+  );
+};
+
+export default ShoppingCart;`,
+      solutionCode: `import React, { useState } from 'react';
+import { View, Text, FlatList, Button } from 'react-native';
+
+const ShoppingCart = () => {
+  const [cartItems, setCartItems] = useState([]);
+  
+  const products = [
+    { id: 1, name: 'Phone', price: 699 },
+    { id: 2, name: 'Laptop', price: 999 },
+    { id: 3, name: 'Headphones', price: 149 },
+  ];
+
+  const addToCart = (product) => {
+    setCartItems([...cartItems, product]);
+  };
+  
+  const cartTotal = cartItems.reduce((total, item) => total + item.price, 0);
+
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
       <FlatList
         data={products}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={{ marginBottom: 15, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5 }}>
-            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.title}</Text>
-            <Text>$\\{item.price}</Text>
+          <View style={{ marginBottom: 10 }}>
+            <Text>{item.name} - ${item.price}</Text>
+            <Button title="Add to Cart" onPress={() => addToCart(item)} />
           </View>
         )}
+      />
+      
+      <Text style={{ fontSize: 20, marginTop: 30, marginBottom: 10 }}>Cart</Text>
+      <FlatList
+        data={cartItems}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <Text>{item.name} - ${item.price}</Text>
+        )}
+      />
+      
+      <Text style={{ fontSize: 18, marginTop: 20, fontWeight: 'bold' }}>
+        Total: ${cartTotal}
+      </Text>
+    </View>
+  );
+};
+
+export default ShoppingCart;`,
+      solutionCriteria: [
+        'Must use useState for cart management',
+        'Must display list of products',
+        'Must implement addToCart functionality',
+        'Must display cart items',
+        'Must calculate and display cart total'
+      ],
+      hints: [
+        'Use useState([]) to initialize empty cart',
+        'Create an addToCart function that uses setCartItems',
+        'Use reduce() to calculate the cart total',
+        'Display two separate FlatLists: one for products and one for cart items'
+      ],
+      xpReward: 75,
+    },
+    {
+      id: 3,
+      title: 'Product Screen with Navigation',
+      description: 'Create a product detail screen that uses React Navigation concepts',
+      instructions: 'Create a product detail screen that simulates React Navigation\'s route params.',
+      difficulty: 'advanced',
+      initialCode: `import React from 'react';
+import { View, Text, Image, StyleSheet, Button } from 'react-native';
+
+// Simulated route params - in a real app, these would come from React Navigation
+const route = {
+  params: {
+    product: {
+      id: 1,
+      name: 'Wireless Headphones',
+      price: 149,
+      description: 'Premium wireless headphones with noise cancellation and 20-hour battery life.',
+      image: 'https://example.com/headphones.jpg'
+    }
+  }
+};
+
+const ProductScreen = () => {
+  // TODO: Extract product from route params
+  
+  // TODO: Implement add to cart functionality
+  
+  // TODO: Create a goBack function (simulate navigation)
+
+  return (
+    <View style={styles.container}>
+      {/* TODO: Display product details with styling */}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  // TODO: Add more styles
+});
+
+export default ProductScreen;`,
+      solutionCode: `import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, Button, Alert } from 'react-native';
+
+// Simulated route params - in a real app, these would come from React Navigation
+const route = {
+  params: {
+    product: {
+      id: 1,
+      name: 'Wireless Headphones',
+      price: 149,
+      description: 'Premium wireless headphones with noise cancellation and 20-hour battery life.',
+      image: 'https://example.com/headphones.jpg'
+    }
+  }
+};
+
+const ProductScreen = () => {
+  const { product } = route.params;
+  const [inCart, setInCart] = useState(false);
+  
+  const addToCart = () => {
+    setInCart(true);
+    Alert.alert('Success', \`Added \${product.name} to cart!\`);
+  };
+  
+  const goBack = () => {
+    Alert.alert('Navigation', 'Going back to product list...');
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Button title="← Back" onPress={goBack} />
+      </View>
+      
+      <View style={styles.imageContainer}>
+        <Text style={styles.imagePlaceholder}>Product Image</Text>
+      </View>
+      
+      <View style={styles.detailsContainer}>
+        <Text style={styles.name}>{product.name}</Text>
+        <Text style={styles.price}>${product.price}</Text>
+        <Text style={styles.description}>{product.description}</Text>
+      </View>
+      
+      <Button 
+        title={inCart ? "Added to Cart" : "Add to Cart"} 
+        onPress={addToCart}
+        disabled={inCart}
       />
     </View>
   );
 };
 
-export default ProductList;`
-      }
-    }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
+    marginBottom: 20,
+  },
+  imageContainer: {
+    backgroundColor: '#f0f0f0',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagePlaceholder: {
+    color: '#888',
+    fontSize: 16,
+  },
+  detailsContainer: {
+    marginBottom: 30,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  price: {
+    fontSize: 20,
+    color: '#0066cc',
+    marginBottom: 15,
+  },
+  description: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#333',
+  },
+});
+
+export default ProductScreen;`,
+      solutionCriteria: [
+        'Must extract product from route.params',
+        'Must display product details (name, price, description)',
+        'Must implement Add to Cart functionality with state',
+        'Must have a Back button with goBack function',
+        'Must use proper styling with StyleSheet'
+      ],
+      hints: [
+        'Extract the product with const { product } = route.params',
+        'Use useState for the cart state',
+        'Create styled components for each part of the product details',
+        'Simulate navigation with an Alert'
+      ],
+      xpReward: 100,
+    },
   ];
   
+  // Initialize user code when level changes
   useEffect(() => {
-    if (selectedLevel) {
-      setUserCode(selectedLevel.challenge.initialCode);
-      setRunResult(null);
-      setCodeVerified(false);
-    }
-  }, [selectedLevel]);
+    setUserCode(gameLevels[currentLevel].initialCode);
+    setOutput([]);
+    setShowSolution(false);
+  }, [currentLevel]);
   
-  const handleLevelSelect = (level: Level) => {
-    if (level.isLocked) {
-      toast({
-        title: "Level Locked",
-        description: "Complete the previous level to unlock this one",
-        variant: "destructive"
-      });
-      return;
+  const handleRunCode = () => {
+    setIsRunning(true);
+    setOutput([]);
+    
+    // Analyze the code for specific criteria
+    const code = userCode;
+    const level = gameLevels[currentLevel];
+    const consoleMessages: string[] = [];
+    
+    // Check if code meets the criteria
+    const criteriaResults = checkCodeCriteria(code, level);
+    
+    // Add results to console output
+    consoleMessages.push("=== Code Analysis ===");
+    let criteriaMet = 0;
+    
+    criteriaResults.forEach(result => {
+      consoleMessages.push(`${result.passed ? '✓' : '✗'} ${result.criteria}`);
+      if (result.passed) criteriaMet++;
+    });
+    
+    const passPercentage = Math.round((criteriaMet / level.solutionCriteria.length) * 100);
+    consoleMessages.push(`\nCriteria met: ${criteriaMet}/${level.solutionCriteria.length} (${passPercentage}%)`);
+    
+    // Check if passed
+    if (passPercentage >= 80) {
+      consoleMessages.push("\n🎉 Great job! Your solution meets the requirements!");
+      
+      // Award XP after a delay
+      setTimeout(() => {
+        addXP(level.xpReward);
+        
+        toast({
+          title: "Level Complete!",
+          description: `You earned ${level.xpReward} XP!`,
+          variant: "default",
+        });
+        
+        // Move to next level if available
+        if (currentLevel < gameLevels.length - 1) {
+          setTimeout(() => {
+            setCurrentLevel(currentLevel + 1);
+            setShowHint(false);
+          }, 1500);
+        } else {
+          // Game completed
+          toast({
+            title: "Game Completed!",
+            description: "You've mastered React Native basics!",
+            variant: "default",
+          });
+        }
+      }, 1000);
+    } else {
+      consoleMessages.push("\n⚠️ Your solution doesn't meet all requirements yet. Keep trying!");
     }
     
-    setSelectedLevel(level);
-    setIsLevelDialogOpen(true);
-    setShowHint(false);
-    setActiveTab('challenge');
+    // Update the console output
+    setOutput(consoleMessages);
+    setIsRunning(false);
   };
   
-  const handleCompleteChallenge = () => {
-    if (selectedLevel && codeVerified) {
-      completeChallenge(`react-native-level-${selectedLevel.id}`);
-      addXP(selectedLevel.xpReward);
+  const checkCodeCriteria = (code: string, level: GameLevel) => {
+    return level.solutionCriteria.map(criteria => {
+      let passed = false;
       
-      toast({
-        title: "Challenge completed!",
-        description: `You've earned ${selectedLevel.xpReward} XP!`,
-      });
-      
-      // Unlock next level
-      if (selectedLevel.id < levels.length) {
-        const nextLevel = levels[selectedLevel.id];
-        if (nextLevel && nextLevel.isLocked) {
-          nextLevel.isLocked = false;
+      // Level 1 specific checks
+      if (level.id === 1) {
+        if (criteria.includes('FlatList')) {
+          passed = code.includes('<FlatList');
+        } else if (criteria.includes('product name and price')) {
+          passed = code.includes('item.name') && code.includes('item.price');
+        } else if (criteria.includes('Add to Cart button')) {
+          passed = code.includes('<Button') && code.includes('addToCart');
+        } else if (criteria.includes('keyExtractor')) {
+          passed = code.includes('keyExtractor');
         }
       }
       
-      selectedLevel.isCompleted = true;
-      setIsLevelDialogOpen(false);
-    } else if (selectedLevel && !codeVerified) {
-      toast({
-        title: "Verification Required",
-        description: "Please run and verify your code before completing the challenge",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const verifyCode = () => {
-    if (!selectedLevel) return;
-    
-    // Simple verification logic
-    let isCorrect = false;
-    const code = userCode.toLowerCase();
-    
-    // Level 1 verification: Check for setItems
-    if (selectedLevel.id === 1) {
-      isCorrect = code.includes('setitems') && 
-                 (code.includes('[...items') || code.includes('concat') || code.includes('push') === false);
-    }
-    // Level 2 verification: Check for proper navigation setup
-    else if (selectedLevel.id === 2) {
-      isCorrect = code.includes('name="home"') && 
-                 code.includes('<stack.screen name="profile" component={profilescreen}') && 
-                 code.includes('<stack.screen name="settings" component={settingsscreen}');
-    }
-    // Level 3 verification: Check for useEffect and fetch
-    else if (selectedLevel.id === 3) {
-      isCorrect = code.includes('useeffect') && 
-                 code.includes('fetch') && 
-                 code.includes('try') && 
-                 code.includes('catch');
-    }
-    
-    setCodeVerified(isCorrect);
-    
-    if (isCorrect) {
-      setRunResult("✅ Your solution is correct! You can now complete the challenge.");
-    } else {
-      setRunResult("❌ Your solution doesn't seem to be correct yet. Keep trying!");
-    }
+      // Level 2 specific checks
+      else if (level.id === 2) {
+        if (criteria.includes('useState')) {
+          passed = code.includes('useState(');
+        } else if (criteria.includes('display list of products')) {
+          passed = code.includes('<FlatList') && code.includes('data={products}');
+        } else if (criteria.includes('addToCart functionality')) {
+          passed = code.includes('addToCart') && code.includes('setCartItems');
+        } else if (criteria.includes('display cart items')) {
+          passed = code.includes('data={cartItems}');
+        } else if (criteria.includes('cart total')) {
+          passed = code.includes('cartTotal') && code.includes('reduce(');
+        }
+      }
+      
+      // Level 3 specific checks
+      else if (level.id === 3) {
+        if (criteria.includes('extract product')) {
+          passed = code.includes('route.params') && code.includes('product');
+        } else if (criteria.includes('display product details')) {
+          passed = code.includes('product.name') && code.includes('product.price') && code.includes('product.description');
+        } else if (criteria.includes('Add to Cart functionality')) {
+          passed = code.includes('useState') && code.includes('addToCart');
+        } else if (criteria.includes('Back button')) {
+          passed = code.includes('goBack') && code.includes('Back');
+        } else if (criteria.includes('StyleSheet')) {
+          passed = code.includes('StyleSheet.create');
+        }
+      }
+      
+      return { criteria, passed };
+    });
   };
   
-  const handleRunCode = () => {
-    verifyCode();
-    setActiveTab('result');
-  };
-  
-  const showSolution = () => {
-    if (selectedLevel && selectedLevel.challenge.solution) {
-      setUserCode(selectedLevel.challenge.solution);
+  const toggleSolution = () => {
+    setShowSolution(!showSolution);
+    if (!showSolution) {
       toast({
-        title: "Solution loaded",
-        description: "Take a moment to understand how it works!",
+        title: "Solution Revealed",
+        description: "Try to understand the solution before moving on.",
+        variant: "default",
       });
     }
   };
@@ -469,234 +518,282 @@ export default ProductList;`
         
         <div className="pt-28 pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-2 mb-6">
-              <button 
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-                onClick={() => navigate('/tech-selection')}
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Back to Tech Selection
-              </button>
-            </div>
-            
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-4">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">React Native Ranger</h1>
-                <p className="text-muted-foreground max-w-2xl">
-                  Debug and build React Native applications through engaging challenges. Fix bugs, implement features, and optimize mobile apps.
-                </p>
-              </div>
-              <div className="bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium flex items-center">
-                <Terminal className="w-4 h-4 mr-2" />
-                <span>Mobile Development</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {levels.map((level) => (
-                <motion.div
-                  key={level.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: level.id * 0.1 }}
-                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                  className={`rounded-xl overflow-hidden ${level.isLocked ? 'opacity-70' : ''}`}
+            <div className="mb-8">
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <button 
+                  className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+                  onClick={() => navigate('/learning-path')}
                 >
-                  <Card className="h-full flex flex-col">
-                    <div className="p-6 flex-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className={`w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center`}>
-                          <Code className="w-6 h-6" />
-                        </div>
-                        
-                        <div className="flex items-center">
-                          {level.isCompleted && (
-                            <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center mr-2">
-                              <Check className="w-4 h-4" />
-                            </div>
-                          )}
-                          <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                            level.difficulty === 'beginner' ? 'bg-green-100 text-green-800' :
-                            level.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {level.difficulty.charAt(0).toUpperCase() + level.difficulty.slice(1)}
-                          </div>
-                        </div>
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Back to Learning Path
+                </button>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Level {currentLevel + 1} of {gameLevels.length}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowHint(!showHint)}
+                    className="text-muted-foreground"
+                  >
+                    <HelpCircle className="w-4 h-4 mr-1" />
+                    Hint
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <Smartphone className="w-6 h-6" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">React Native Ranger</h1>
+                  <p className="text-muted-foreground">
+                    Master React Native concepts by building mobile UI components
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {showHint && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200"
+              >
+                <div className="flex items-start">
+                  <Info className="w-5 h-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-blue-800 mb-1">Hint</h3>
+                    <p className="text-blue-700 text-sm">{gameLevels[currentLevel].hints[0]}</p>
+                    {gameLevels[currentLevel].hints.length > 1 && (
+                      <p className="text-blue-700 text-sm mt-2">{gameLevels[currentLevel].hints[1]}</p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <span>Level {currentLevel + 1}: {gameLevels[currentLevel].title}</span>
+                      <div className="ml-2 px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
+                        {gameLevels[currentLevel].difficulty}
+                      </div>
+                    </CardTitle>
+                    <CardDescription>
+                      {gameLevels[currentLevel].description}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-100">
+                      <h3 className="text-sm font-medium mb-2 text-blue-700">Instructions:</h3>
+                      <p className="text-sm text-blue-700">{gameLevels[currentLevel].instructions}</p>
+                    </div>
+                    
+                    <div className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm overflow-x-auto mb-4">
+                      <textarea
+                        value={userCode}
+                        onChange={(e) => setUserCode(e.target.value)}
+                        className="w-full h-64 bg-transparent outline-none resize-none"
+                        spellCheck="false"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setUserCode(gameLevels[currentLevel].initialCode)}
+                          className="gap-2"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Reset Code
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={toggleSolution}
+                          className="gap-2"
+                        >
+                          <Code className="w-4 h-4" />
+                          {showSolution ? "Hide Solution" : "View Solution"}
+                        </Button>
                       </div>
                       
-                      <h3 className="text-xl font-bold mb-2">Level {level.id}: {level.title}</h3>
-                      <p className="text-muted-foreground mb-4">{level.description}</p>
-                      
-                      <div className="flex flex-wrap gap-2 mb-5">
-                        <div className="flex items-center text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full">
-                          <Award className="w-3 h-3 mr-1" />
-                          <span>{level.xpReward} XP</span>
+                      <Button
+                        onClick={handleRunCode}
+                        disabled={isRunning}
+                        className="gap-2"
+                      >
+                        <Play className="w-4 h-4" />
+                        Run Code
+                      </Button>
+                    </div>
+                    
+                    {showSolution && (
+                      <div className="mt-6 border border-green-200 rounded-md overflow-hidden">
+                        <div className="bg-green-50 p-3">
+                          <h3 className="text-sm font-medium text-green-800 flex items-center">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Solution
+                          </h3>
                         </div>
-                        <div className="flex items-center text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded-full">
-                          <Clock className="w-3 h-3 mr-1" />
-                          <span>{level.timeLimit} min</span>
+                        <div className="bg-gray-900 text-gray-100 p-4 font-mono text-sm overflow-x-auto">
+                          <pre>{gameLevels[currentLevel].solutionCode}</pre>
                         </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Console Output</CardTitle>
+                    <CardDescription>
+                      See the results of your code verification
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm overflow-x-auto max-h-48 overflow-y-auto">
+                      {output.length === 0 ? (
+                        <span className="text-gray-500">// Run your code to see verification results</span>
+                      ) : (
+                        output.map((line, index) => (
+                          <div key={index} className={`mb-1 ${
+                            line.includes('✗') ? 'text-red-400' : 
+                            line.includes('✓') ? 'text-green-400' : 
+                            line.includes('Great job') ? 'text-green-400 font-bold' : 
+                            line.includes('⚠️') ? 'text-yellow-400 font-bold' : 
+                            line.includes('===') ? 'text-blue-400 font-bold' : 
+                            'text-gray-300'
+                          }`}>
+                            {line}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Challenge Requirements</CardTitle>
+                    <CardDescription>
+                      Your code should meet these criteria
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {gameLevels[currentLevel].solutionCriteria.map((criterion, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <CheckCircle className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{criterion}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <div className="mt-6">
+                      <h3 className="text-sm font-medium mb-2">Reward:</h3>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                          <span className="text-xs">{gameLevels[currentLevel].xpReward}</span>
+                        </div>
+                        <span>XP upon completion</span>
                       </div>
                     </div>
                     
-                    <div className="p-6 pt-0 mt-auto">
-                      <Button 
-                        onClick={() => handleLevelSelect(level)}
-                        className="w-full"
-                        variant={level.isLocked ? "outline" : "default"}
-                        disabled={level.isLocked}
-                      >
-                        {level.isLocked ? (
-                          <>
-                            <span>Locked</span>
-                          </>
-                        ) : level.isCompleted ? (
-                          <>
-                            <span>Replay Level</span>
-                            <Play className="w-4 h-4 ml-2" />
-                          </>
+                    <div className="mt-6 bg-yellow-50 p-4 rounded-md">
+                      <h3 className="text-sm font-medium text-yellow-800 mb-2">React Native Tip:</h3>
+                      <p className="text-xs text-yellow-700">
+                        {currentLevel === 0 ? (
+                          "FlatList is more efficient than ScrollView for long lists because it only renders items that are currently visible on screen."
+                        ) : currentLevel === 1 ? (
+                          "When managing cart state, always use the functional update form of setState when the new state depends on the previous state."
                         ) : (
-                          <>
-                            <span>Start Challenge</span>
-                            <Play className="w-4 h-4 ml-2" />
-                          </>
+                          "In a real React Native app, you would use React Navigation to handle screen navigation and route parameters."
                         )}
-                      </Button>
+                      </p>
                     </div>
-                  </Card>
-                </motion.div>
-              ))}
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Preview</CardTitle>
+                    <CardDescription>
+                      Mobile UI preview (simulated)
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="flex justify-center">
+                    <div className="w-64 h-[420px] bg-white border-8 border-gray-800 rounded-3xl relative overflow-hidden">
+                      <div className="h-6 bg-gray-800 flex justify-center items-center">
+                        <div className="w-20 h-2 bg-gray-700 rounded-full"></div>
+                      </div>
+                      <div className="p-3 text-center">
+                        <p className="text-gray-400 text-xs italic">
+                          (Preview simulated - in a real app, you'd see your component rendered here)
+                        </p>
+                        
+                        {currentLevel === 0 ? (
+                          <div className="mt-4 text-left">
+                            <p className="text-lg font-bold mb-2">Products</p>
+                            <div className="border border-gray-200 p-2 rounded mb-2">
+                              <p>Phone - $699</p>
+                              <button className="bg-blue-500 text-white rounded text-xs px-2 py-1 mt-1">Add to Cart</button>
+                            </div>
+                            <div className="border border-gray-200 p-2 rounded mb-2">
+                              <p>Laptop - $999</p>
+                              <button className="bg-blue-500 text-white rounded text-xs px-2 py-1 mt-1">Add to Cart</button>
+                            </div>
+                            <div className="border border-gray-200 p-2 rounded">
+                              <p>Headphones - $149</p>
+                              <button className="bg-blue-500 text-white rounded text-xs px-2 py-1 mt-1">Add to Cart</button>
+                            </div>
+                          </div>
+                        ) : currentLevel === 1 ? (
+                          <div className="mt-4 text-left">
+                            <p className="text-lg font-bold mb-2">Products</p>
+                            <div className="border border-gray-200 p-2 rounded mb-2">
+                              <p>Phone - $699</p>
+                              <button className="bg-blue-500 text-white rounded text-xs px-2 py-1 mt-1">Add to Cart</button>
+                            </div>
+                            <p className="text-lg font-bold mt-4 mb-2">Cart</p>
+                            <div className="border border-gray-200 p-2 rounded mb-2">
+                              <p>Phone - $699</p>
+                            </div>
+                            <p className="font-bold mt-2">Total: $699</p>
+                          </div>
+                        ) : (
+                          <div className="mt-4 text-left">
+                            <button className="text-blue-500 mb-4">← Back</button>
+                            <div className="bg-gray-100 h-20 flex items-center justify-center mb-4">
+                              <p className="text-gray-400">Product Image</p>
+                            </div>
+                            <p className="text-lg font-bold">Wireless Headphones</p>
+                            <p className="text-blue-500 font-bold">$149</p>
+                            <p className="text-sm mt-2 mb-4">Premium wireless headphones with noise cancellation and 20-hour battery life.</p>
+                            <button className="bg-blue-500 text-white rounded w-full py-1">Add to Cart</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
-        
-        <Dialog open={isLevelDialogOpen} onOpenChange={setIsLevelDialogOpen}>
-          <DialogContent className="sm:max-w-[900px] h-[80vh] max-h-[900px] flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Level {selectedLevel?.id}: {selectedLevel?.title}</DialogTitle>
-              <DialogDescription>
-                {selectedLevel?.challenge.description}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-              <TabsList className="mb-2">
-                <TabsTrigger value="challenge">Challenge</TabsTrigger>
-                <TabsTrigger value="code">Code Editor</TabsTrigger>
-                <TabsTrigger value="result">Result</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="challenge" className="flex-1 overflow-auto">
-                <div className="space-y-4">
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                    <h3 className="font-medium mb-2 flex items-center">
-                      <Terminal className="w-4 h-4 mr-2 text-primary" />
-                      Task
-                    </h3>
-                    <p className="text-sm">{selectedLevel?.challenge.description}</p>
-                  </div>
-                  
-                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                    <h3 className="font-medium mb-2 flex items-center">
-                      <Code className="w-4 h-4 mr-2 text-primary" />
-                      Expected Outcome
-                    </h3>
-                    <p className="text-sm">{selectedLevel?.challenge.expectedOutput}</p>
-                  </div>
-                  
-                  <div>
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center gap-2"
-                      onClick={() => setShowHint(!showHint)}
-                    >
-                      <Lightbulb className="w-4 h-4 text-yellow-500" />
-                      {showHint ? "Hide Hints" : "Show Hints"}
-                    </Button>
-                    
-                    {showHint && selectedLevel && (
-                      <div className="mt-3 space-y-2">
-                        {selectedLevel.challenge.hints.map((hint, index) => (
-                          <div 
-                            key={index}
-                            className="bg-yellow-50 border-l-4 border-yellow-500 p-3"
-                          >
-                            <p className="text-sm">{hint}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="code" className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex-1 overflow-auto bg-gray-900 rounded-md font-mono text-sm">
-                  <Textarea
-                    value={userCode}
-                    onChange={(e) => setUserCode(e.target.value)}
-                    className="w-full h-full min-h-[300px] bg-gray-900 text-gray-100 p-4 font-mono text-sm border-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                    spellCheck={false}
-                  />
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button 
-                    onClick={handleRunCode} 
-                    className="flex items-center gap-2"
-                    variant="default"
-                  >
-                    <Play className="w-4 h-4" />
-                    Run Code
-                  </Button>
-                  <Button 
-                    onClick={showSolution} 
-                    className="flex items-center gap-2"
-                    variant="outline"
-                  >
-                    <Lightbulb className="w-4 h-4" />
-                    Show Solution
-                  </Button>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="result" className="flex-1 overflow-auto">
-                <div className="h-full flex flex-col">
-                  <div className="flex-1 bg-gray-100 p-4 rounded-md mb-4 overflow-auto">
-                    {runResult ? (
-                      <div className="text-sm">
-                        <p className="font-medium mb-2">Verification Result:</p>
-                        <div 
-                          className={`p-3 ${codeVerified ? 'bg-green-100' : 'bg-red-100'} rounded-md`}
-                          dangerouslySetInnerHTML={{ __html: runResult }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground">
-                        <p>Run your code to see the result</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-            
-            <DialogFooter>
-              <div className="flex w-full gap-3">
-                <Button variant="outline" className="flex-1" onClick={() => setIsLevelDialogOpen(false)}>
-                  Exit Challenge
-                </Button>
-                <Button 
-                  className="flex-1" 
-                  onClick={handleCompleteChallenge}
-                  disabled={!codeVerified}
-                >
-                  Complete Challenge
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </AnimatedTransition>
   );

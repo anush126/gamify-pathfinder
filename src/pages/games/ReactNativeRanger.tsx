@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -75,7 +74,7 @@ const ShoppingCart = () => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={{ marginBottom: 10 }}>
-            <Text>{item.name} - ${item.price}</Text>
+            <Text>{item.name} - $\\{item.price}</Text>
             <Button title="Add to Cart" onPress={() => addToCart(item)} />
           </View>
         )}
@@ -87,7 +86,7 @@ const ShoppingCart = () => {
         data={items}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <Text>{item.name} - ${item.price}</Text>
+          <Text>{item.name} - $\\{item.price}</Text>
         )}
       />
     </View>
@@ -448,4 +447,3 @@ export default ProductList;`,
 };
 
 export default ReactNativeRanger;
-

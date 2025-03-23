@@ -123,7 +123,7 @@ const Dashboard = () => {
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <DashboardCard>
+                <DashboardCard className="">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>Continue Learning</span>
@@ -184,7 +184,7 @@ const Dashboard = () => {
                   </CardContent>
                 </DashboardCard>
                 
-                <DashboardCard>
+                <DashboardCard className="">
                   <CardHeader>
                     <CardTitle>Weekly Activity</CardTitle>
                     <CardDescription>
@@ -216,7 +216,7 @@ const Dashboard = () => {
               </div>
               
               <div className="space-y-6">
-                <DashboardCard>
+                <DashboardCard className="">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>Achievements</span>
@@ -243,7 +243,7 @@ const Dashboard = () => {
                   </CardContent>
                 </DashboardCard>
                 
-                <DashboardCard>
+                <DashboardCard className="">
                   <CardHeader>
                     <CardTitle>Daily Reminder</CardTitle>
                     <CardDescription>

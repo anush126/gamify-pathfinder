@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Play, Code, Award, ChevronsRight, Clock, Lightbulb, Check, X, Terminal } from 'lucide-react';
+import { ChevronLeft, Play, Code, Award, Clock, Lightbulb, Check, X, Terminal, Save } from 'lucide-react';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Navbar from '@/components/Navbar';
 import { useProgress } from '@/hooks/useProgress';
@@ -9,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 
 interface Level {
@@ -25,6 +27,7 @@ interface Level {
     initialCode: string;
     expectedOutput: string;
     hints: string[];
+    solution?: string;
   };
 }
 
@@ -34,6 +37,9 @@ const ReactNativeRanger = () => {
   const [isLevelDialogOpen, setIsLevelDialogOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [activeTab, setActiveTab] = useState('challenge');
+  const [userCode, setUserCode] = useState<string>('');
+  const [runResult, setRunResult] = useState<string | null>(null);
+  const [codeVerified, setCodeVerified] = useState<boolean>(false);
   const navigate = useNavigate();
   
   const levels: Level[] = [
@@ -99,7 +105,53 @@ export default ShoppingCart;`,
           "Think about how React state should be updated. Direct mutations won't trigger re-renders.",
           "The setItems function should be used to update the state.",
           "Try using the spread operator or Array.concat() to create a new array."
-        ]
+        ],
+        solution: `import React, { useState } from 'react';
+import { View, Text, Button, FlatList } from 'react-native';
+
+const ShoppingCart = () => {
+  const [items, setItems] = useState([]);
+  
+  const products = [
+    { id: 1, name: 'Headphones', price: 99.99 },
+    { id: 2, name: 'Smart Watch', price: 199.99 },
+    { id: 3, name: 'Bluetooth Speaker', price: 49.99 },
+  ];
+  
+  const addToCart = (product) => {
+    // Fixed: Create a new array and update state with setItems
+    setItems([...items, product]);
+  };
+  
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
+      
+      <FlatList
+        data={products}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={{ marginBottom: 10 }}>
+            <Text>{item.name} - $\\{item.price}</Text>
+            <Button title="Add to Cart" onPress={() => addToCart(item)} />
+          </View>
+        )}
+      />
+      
+      <Text style={{ fontSize: 20, marginTop: 20 }}>Cart Items: {items.length}</Text>
+      
+      <FlatList
+        data={items}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <Text>{item.name} - $\\{item.price}</Text>
+        )}
+      />
+    </View>
+  );
+};
+
+export default ShoppingCart;`
       }
     },
     {
@@ -141,7 +193,30 @@ export default AppNavigator;`,
           "Each Stack.Screen needs a unique 'name' prop.",
           "The HomeScreen is missing its name prop.",
           "The ProfileScreen and SettingsScreen components are switched."
-        ]
+        ],
+        solution: `import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './HomeScreen';
+import ProfileScreen from './ProfileScreen';
+import SettingsScreen from './SettingsScreen';
+
+const Stack = createStackNavigator();
+
+const AppNavigator = () => {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {/* Fixed: Added missing name prop and corrected component order */}
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default AppNavigator;`
       }
     },
     {
@@ -196,7 +271,7 @@ const ProductList = () => {
         renderItem={({ item }) => (
           <View style={{ marginBottom: 15, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5 }}>
             <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.title}</Text>
-            <Text>\${item.price}</Text>
+            <Text>$\\{item.price}</Text>
           </View>
         )}
       />
@@ -210,10 +285,87 @@ export default ProductList;`,
           "Use the useEffect hook to fetch data when the component mounts.",
           "Implement proper try/catch handling for the fetch operation.",
           "Update loading, error, and products states at appropriate times during the fetch operation."
-        ]
+        ],
+        solution: `import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
+
+const ProductList = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Implemented the fetchProducts function
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('https://fakestoreapi.com/products');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      
+      const data = await response.json();
+      setProducts(data);
+    } catch (err) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Call fetchProducts when component mounts
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+  
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+  
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Error loading products</Text>
+      </View>
+    );
+  }
+  
+  return (
+    <View style={{ padding: 20 }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Products</Text>
+      
+      <FlatList
+        data={products}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={{ marginBottom: 15, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5 }}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.title}</Text>
+            <Text>$\\{item.price}</Text>
+          </View>
+        )}
+      />
+    </View>
+  );
+};
+
+export default ProductList;`
       }
     }
   ];
+  
+  useEffect(() => {
+    if (selectedLevel) {
+      setUserCode(selectedLevel.challenge.initialCode);
+      setRunResult(null);
+      setCodeVerified(false);
+    }
+  }, [selectedLevel]);
   
   const handleLevelSelect = (level: Level) => {
     if (level.isLocked) {
@@ -232,7 +384,7 @@ export default ProductList;`,
   };
   
   const handleCompleteChallenge = () => {
-    if (selectedLevel) {
+    if (selectedLevel && codeVerified) {
       completeChallenge(`react-native-level-${selectedLevel.id}`);
       addXP(selectedLevel.xpReward);
       
@@ -251,6 +403,62 @@ export default ProductList;`,
       
       selectedLevel.isCompleted = true;
       setIsLevelDialogOpen(false);
+    } else if (selectedLevel && !codeVerified) {
+      toast({
+        title: "Verification Required",
+        description: "Please run and verify your code before completing the challenge",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const verifyCode = () => {
+    if (!selectedLevel) return;
+    
+    // Simple verification logic
+    let isCorrect = false;
+    const code = userCode.toLowerCase();
+    
+    // Level 1 verification: Check for setItems
+    if (selectedLevel.id === 1) {
+      isCorrect = code.includes('setitems') && 
+                 (code.includes('[...items') || code.includes('concat') || code.includes('push') === false);
+    }
+    // Level 2 verification: Check for proper navigation setup
+    else if (selectedLevel.id === 2) {
+      isCorrect = code.includes('name="home"') && 
+                 code.includes('<stack.screen name="profile" component={profilescreen}') && 
+                 code.includes('<stack.screen name="settings" component={settingsscreen}');
+    }
+    // Level 3 verification: Check for useEffect and fetch
+    else if (selectedLevel.id === 3) {
+      isCorrect = code.includes('useeffect') && 
+                 code.includes('fetch') && 
+                 code.includes('try') && 
+                 code.includes('catch');
+    }
+    
+    setCodeVerified(isCorrect);
+    
+    if (isCorrect) {
+      setRunResult("✅ Your solution is correct! You can now complete the challenge.");
+    } else {
+      setRunResult("❌ Your solution doesn't seem to be correct yet. Keep trying!");
+    }
+  };
+  
+  const handleRunCode = () => {
+    verifyCode();
+    setActiveTab('result');
+  };
+  
+  const showSolution = () => {
+    if (selectedLevel && selectedLevel.challenge.solution) {
+      setUserCode(selectedLevel.challenge.solution);
+      toast({
+        title: "Solution loaded",
+        description: "Take a moment to understand how it works!",
+      });
     }
   };
   
@@ -376,6 +584,7 @@ export default ProductList;`,
               <TabsList className="mb-2">
                 <TabsTrigger value="challenge">Challenge</TabsTrigger>
                 <TabsTrigger value="code">Code Editor</TabsTrigger>
+                <TabsTrigger value="result">Result</TabsTrigger>
               </TabsList>
               
               <TabsContent value="challenge" className="flex-1 overflow-auto">
@@ -423,8 +632,51 @@ export default ProductList;`,
               </TabsContent>
               
               <TabsContent value="code" className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex-1 overflow-auto bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm">
-                  <pre>{selectedLevel?.challenge.initialCode}</pre>
+                <div className="flex-1 overflow-auto bg-gray-900 rounded-md font-mono text-sm">
+                  <Textarea
+                    value={userCode}
+                    onChange={(e) => setUserCode(e.target.value)}
+                    className="w-full h-full min-h-[300px] bg-gray-900 text-gray-100 p-4 font-mono text-sm border-none resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    spellCheck={false}
+                  />
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <Button 
+                    onClick={handleRunCode} 
+                    className="flex items-center gap-2"
+                    variant="default"
+                  >
+                    <Play className="w-4 h-4" />
+                    Run Code
+                  </Button>
+                  <Button 
+                    onClick={showSolution} 
+                    className="flex items-center gap-2"
+                    variant="outline"
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                    Show Solution
+                  </Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="result" className="flex-1 overflow-auto">
+                <div className="h-full flex flex-col">
+                  <div className="flex-1 bg-gray-100 p-4 rounded-md mb-4 overflow-auto">
+                    {runResult ? (
+                      <div className="text-sm">
+                        <p className="font-medium mb-2">Verification Result:</p>
+                        <div 
+                          className={`p-3 ${codeVerified ? 'bg-green-100' : 'bg-red-100'} rounded-md`}
+                          dangerouslySetInnerHTML={{ __html: runResult }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-muted-foreground">
+                        <p>Run your code to see the result</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
@@ -434,7 +686,11 @@ export default ProductList;`,
                 <Button variant="outline" className="flex-1" onClick={() => setIsLevelDialogOpen(false)}>
                   Exit Challenge
                 </Button>
-                <Button className="flex-1" onClick={handleCompleteChallenge}>
+                <Button 
+                  className="flex-1" 
+                  onClick={handleCompleteChallenge}
+                  disabled={!codeVerified}
+                >
                   Complete Challenge
                 </Button>
               </div>

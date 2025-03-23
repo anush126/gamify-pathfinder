@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, Github, Google } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Github, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AnimatedTransition from '@/components/AnimatedTransition';
 import Navbar from '@/components/Navbar';
@@ -160,7 +160,7 @@ const Auth = () => {
                       });
                     }}
                   >
-                    <Google className="w-4 h-4 mr-2" />
+                    <Globe className="w-4 h-4 mr-2" />
                     Google
                   </Button>
                 </div>

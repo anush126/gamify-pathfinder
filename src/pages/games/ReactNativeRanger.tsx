@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -71,11 +72,11 @@ const ShoppingCart = () => {
       
       <FlatList
         data={products}
-        keyExtractor={(product) => product.id.toString()}
-        renderItem={({ item: product }) => (
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
           <View style={{ marginBottom: 10 }}>
-            <Text>{product.name} - ${product.price}</Text>
-            <Button title="Add to Cart" onPress={() => addToCart(product)} />
+            <Text>{item.name} - ${item.price}</Text>
+            <Button title="Add to Cart" onPress={() => addToCart(item)} />
           </View>
         )}
       />
@@ -84,9 +85,9 @@ const ShoppingCart = () => {
       
       <FlatList
         data={items}
-        keyExtractor={(cartItem, index) => index.toString()}
-        renderItem={({ item: cartItem }) => (
-          <Text>{cartItem.name} - ${cartItem.price}</Text>
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <Text>{item.name} - ${item.price}</Text>
         )}
       />
     </View>
@@ -192,11 +193,11 @@ const ProductList = () => {
       
       <FlatList
         data={products}
-        keyExtractor={(product) => product.id.toString()}
-        renderItem={({ item: product }) => (
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
           <View style={{ marginBottom: 15, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 5 }}>
-            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{product.title}</Text>
-            <Text>${product.price}</Text>
+            <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.title}</Text>
+            <Text>\${item.price}</Text>
           </View>
         )}
       />
@@ -447,3 +448,4 @@ export default ProductList;`,
 };
 
 export default ReactNativeRanger;
+

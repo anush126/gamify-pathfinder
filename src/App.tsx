@@ -12,6 +12,8 @@ import LearningPath from "./pages/LearningPath";
 import HtmlBlueprint from "./pages/games/HtmlBlueprint";
 import CssStyler from "./pages/games/CssStyler";
 import JsCommander from "./pages/games/JsCommander";
+import ReactNativeRanger from "./pages/games/ReactNativeRanger";
+import FlutterForge from "./pages/games/FlutterForge";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/games/html-blueprint" element={<HtmlBlueprint />} />
           <Route path="/games/css-styler" element={<CssStyler />} />
           <Route path="/games/js-commander" element={<JsCommander />} />
+          <Route path="/games/react-native-ranger" element={<ReactNativeRanger />} />
+          <Route path="/games/flutter-forge" element={<FlutterForge />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -23,6 +23,7 @@ interface Technology {
   name: string;
   icon: string;
   description: string;
+  gamePath?: string;
 }
 
 const TechSelection = () => {
@@ -43,13 +44,15 @@ const TechSelection = () => {
           id: 'html-css', 
           name: 'HTML & CSS', 
           icon: '🌐', 
-          description: 'The building blocks of the web' 
+          description: 'The building blocks of the web',
+          gamePath: '/games/html-blueprint'
         },
         { 
           id: 'javascript', 
           name: 'JavaScript', 
           icon: '📜', 
-          description: 'Add interactivity to your websites' 
+          description: 'Add interactivity to your websites',
+          gamePath: '/games/js-commander'
         },
         { 
           id: 'react', 
@@ -76,13 +79,15 @@ const TechSelection = () => {
           id: 'react-native', 
           name: 'React Native', 
           icon: '📱', 
-          description: 'Cross-platform mobile apps with React' 
+          description: 'Cross-platform mobile apps with React',
+          gamePath: '/games/react-native-ranger'
         },
         { 
           id: 'flutter', 
           name: 'Flutter', 
           icon: '🦋', 
-          description: 'Google\'s UI toolkit for mobile' 
+          description: 'Google\'s UI toolkit for mobile',
+          gamePath: '/games/flutter-forge' 
         },
         { 
           id: 'swift', 
@@ -205,6 +210,14 @@ const TechSelection = () => {
   };
   
   const handleTechToggle = (techId: string) => {
+    const selectedTech = techPaths.find(path => path.id === selectedPath)?.technologies.find(tech => tech.id === techId);
+    
+    // If the technology has a game path, navigate to it directly
+    if (selectedTech?.gamePath) {
+      navigate(selectedTech.gamePath);
+      return;
+    }
+    
     setSelectedTechnologies(prev => {
       if (prev.includes(techId)) {
         return prev.filter(id => id !== techId);
